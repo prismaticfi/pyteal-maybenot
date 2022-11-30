@@ -83,7 +83,7 @@ class _GetExAppGlobal(_AppGetter):
 
 
 @dataclass(frozen=True, slots=True)
-class AppLocal:
+class ExAppLocal:
     account: pt.Expr
     app: pt.Expr
     key: pt.Expr
@@ -104,7 +104,7 @@ class AppLocal:
 
 
 @dataclass(frozen=True, slots=True)
-class AppGlobal:
+class ExAppGlobal:
     app: pt.Expr
     key: pt.Expr
 
