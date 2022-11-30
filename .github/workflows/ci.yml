@@ -1,0 +1,14 @@
+name: CI
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Build Docker image
+        run: make image
+      - name: Run tests
+        run: make ci_tests
