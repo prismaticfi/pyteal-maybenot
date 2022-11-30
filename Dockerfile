@@ -13,5 +13,5 @@ COPY poetry.lock poetry.lock
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
-COPY pt_maybenot pt_maybenot
+COPY pyteal_maybenot pyteal_maybenot
 COPY tests tests
