@@ -2,7 +2,7 @@ import itertools
 
 import pyteal as pt
 
-import pt_maybenot as ptmn
+import pyteal_maybenot as ptmn
 
 from .utils import compile, format_teal
 

@@ -1,7 +1,7 @@
 import pyteal as pt
 
-import pt_maybenot as ptmn
-from pt_maybenot.expr.params import _ACCT_PARAMS_MAP, _APP_PARAMS_MAP, _ASSET_HOLDING_MAP, _ASSET_PARAMS_MAP
+import pyteal_maybenot as ptmn
+from pyteal_maybenot.expr.params import _ACCT_PARAMS_MAP, _APP_PARAMS_MAP, _ASSET_HOLDING_MAP, _ASSET_PARAMS_MAP
 
 from .utils import compile_popped, format_teal
 
