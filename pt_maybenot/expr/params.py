@@ -136,15 +136,15 @@ class _FieldGetter(pt.Expr, ABC):
         if self._get_exists:
             # need to swap if returning exists flag
             if self._get_exists:
-                swap = pt.TealSimpleBlock(
+                swap_or_store = pt.TealSimpleBlock(
                     [
                         pt.TealOp(self, pt.Op.swap),
                         # if opting not to store, the value simply gets popped
                         pt.TealOp(self, pt.Op.store, self._slot) if self._slot else pt.TealOp(self, pt.Op.pop),
                     ]
                 )
-                get_end.setNextBlock(swap)
-                return get_start, swap
+                get_end.setNextBlock(swap_or_store)
+                return get_start, swap_or_store
         # if assert has value, we assert the value_exists (1 if exists, 0 if not), else just pop it
         value_exists_op = pt.Op.assert_ if self._assert_has_value else pt.Op.pop
         value_start, value_end = pt.TealSimpleBlock.FromOp(options, pt.TealOp(self, value_exists_op))
