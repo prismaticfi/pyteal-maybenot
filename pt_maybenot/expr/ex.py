@@ -1,5 +1,6 @@
 import typing
 from abc import ABC
+from dataclasses import dataclass
 
 import pyteal as pt
 
@@ -79,3 +80,44 @@ class _GetExAppGlobal(_AppGetter):
 
     def __init__(self, app: pt.Expr, key: pt.Expr, assert_has_value: bool = True, get_exists: bool = False):
         super().__init__(assert_has_value, get_exists, app, key)
+
+
+@dataclass(frozen=True, slots=True)
+class AppLocal:
+    account: pt.Expr
+    app: pt.Expr
+    key: pt.Expr
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the local state value while optionally asserting that the value exists. If the value
+        does not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetExAppLocal(self.account, self.app, self.key, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the local state value. Returns an integer of 1 if the value exists
+        and 0 otherwise.
+        """
+        return _GetExAppLocal(self.account, self.app, self.key, assert_has_value=False, get_exists=True)
+
+
+@dataclass(frozen=True, slots=True)
+class AppGlobal:
+    app: pt.Expr
+    key: pt.Expr
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the global state value while optionally asserting that the value exists. If the value
+        does not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetExAppGlobal(self.app, self.key, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the global state value. Returns an integer of 1 if the value
+        exists and 0 otherwise.
+        """
+        return _GetExAppGlobal(self.app, self.key, assert_has_value=False, get_exists=True)
