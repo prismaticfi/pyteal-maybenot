@@ -199,3 +199,84 @@ class _GetAcctParams(_FieldGetter):
         self, account: pt.Expr, field: AcctParamsField, assert_has_value: bool = True, get_exists: bool = False
     ):
         super().__init__(field, assert_has_value, get_exists, account)
+
+
+@dataclass(frozen=True, slots=True)
+class AssetHolding:
+    account: pt.Expr
+    asset: pt.Expr
+    field: AssetHoldingField
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the asset holding value while optionally asserting that the value exists. If the value
+        does not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetAssetHolding(self.account, self.asset, self.field, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the asset holding value. Returns an integer of 1 if the value
+        exists and 0 otherwise.
+        """
+        return _GetAssetHolding(self.account, self.asset, self.field, assert_has_value=False, get_exists=True)
+
+
+@dataclass(frozen=True, slots=True)
+class AssetParams:
+    asset: pt.Expr
+    field: AssetParamsField
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the asset params value while optionally asserting that the value exists. If the value
+        does not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetAssetParams(self.asset, self.field, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the asset params value. Returns an integer of 1 if the value
+        exists and 0 otherwise.
+        """
+        return _GetAssetParams(self.asset, self.field, assert_has_value=False, get_exists=True)
+
+
+@dataclass(frozen=True, slots=True)
+class AppParams:
+    app: pt.Expr
+    field: AppParamsField
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the app params value while optionally asserting that the value exists. If the value does
+        not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetAppParams(self.app, self.field, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the app params value. Returns an integer of 1 if the value exists
+        and 0 otherwise.
+        """
+        return _GetAppParams(self.app, self.field, assert_has_value=False, get_exists=True)
+
+
+@dataclass(frozen=True, slots=True)
+class AcctParams:
+    account: pt.Expr
+    field: AcctParamsField
+
+    def get(self, assert_has_value: bool = True) -> pt.Expr:
+        """
+        Get the account params value while optionally asserting that the value exists. If the value
+        does not exist and is not asserted, an integer value of 0 is returned.
+        """
+        return _GetAcctParams(self.account, self.field, assert_has_value)
+
+    def exists(self) -> pt.Expr:
+        """
+        Get the existence flag of the account params value. Returns an integer of 1 if the value
+        exists and 0 otherwise.
+        """
+        return _GetAcctParams(self.account, self.field, assert_has_value=False, get_exists=True)
