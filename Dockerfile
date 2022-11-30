@@ -13,5 +13,5 @@ COPY poetry.lock poetry.lock
 RUN poetry config virtualenvs.create false
 RUN poetry install
 
-COPY template template
+COPY pt_maybenot pt_maybenot
 COPY tests tests

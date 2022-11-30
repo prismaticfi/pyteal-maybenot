@@ -1,4 +1,4 @@
-# python-template
+# PyTeal MaybeNot extensions
 
 
 ## Commit types

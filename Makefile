@@ -1,4 +1,4 @@
-REPO = template
+REPO = pyteal-maybenot
 
 clean:
 	find . -name '__pycache__' | xargs rm -rf
