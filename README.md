@@ -1,5 +1,26 @@
 # PyTeal MaybeNot extension
 
+## Security
+
+None of the code in the repository has been audited and no security guarantees are provided - any
+use is _ENTIRELY_ at own responsibility!
+
+## Installation
+
+The package can be installed via `pip`
+
+```sh
+pip install git+https://github.com/prismaticfi/pyteal-maybenot.git
+```
+
+or `poetry`
+
+```sh
+poetry add git+https://github.com/prismaticfi/pyteal-maybenot.git
+```
+
+## Summary
+
 `PyTeal MaybeNot` provides a set of custom `Expr` subclasses to replace the `MaybeValue` classes
 provided natively in `PyTeal` to deal with reading external state, such as global- and local state
 of other contracts, asset parameters, account information and so on. The extension provides slightly
@@ -104,12 +125,9 @@ return
 While syntax is entirely subjective, these calling conventions may not feel especially natural or
 readable to beginners.
 
-## MaybeNot implementation
-
-The `Expr` classes provided in this extension instead handles the stack directly within `TEAL`
-blocks, but does so conditionally (explained further below).
-
-External state access can be in-lined without storage, and existence is asserted by default, e.g.:
+The `Expr` classes provided here instead handles the stack directly within `TEAL` blocks, but does
+so conditionally (explained further below). External state access can be in-lined without storage,
+and existence is asserted by default, e.g.:
 
 ```python
 pt.Seq(
@@ -173,8 +191,3 @@ pt.If(status.exists(), status.get(), pt.Bytes("none"))
 Storing can be opted out of by passing `store=False` in the `exists()` call, which replaces the
 `store` operation with `pop`. Similarly, asserting existence- and loading the cached value can be
 disabled by passing `assert_has_value=False` and `load=False` respectively in the `get()` call.
-
-## Security
-
-None of the code in the repository has been audited and no security guarantees are provided - any
-use is _ENTIRELY_ at own responsibility!
