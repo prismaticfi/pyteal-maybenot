@@ -132,7 +132,7 @@ and existence is asserted by default, e.g.:
 ```python
 pt.Seq(
     ...,
-    ptmb.ExAppGlobal(pt.Txn.applications[0], pt.Bytes("status")).get(),
+    ptmn.ExAppGlobal(pt.Txn.applications[0], pt.Bytes("status")).get(),
     ...,
 )
 
