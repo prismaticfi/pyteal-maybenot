@@ -190,4 +190,4 @@ pt.If(status.exists(), status.get(), pt.Bytes("none"))
 ```
 Storing can be opted out of by passing `store=False` in the `exists()` call, which replaces the
 `store` operation with `pop`. Similarly, asserting existence- and loading the cached value can be
-disabled by passing `assert_has_value=False` and `load=False` respectively in the `get()` call.
+disabled by passing `assert_exists=False` and `load=False` respectively in the `get()` call.

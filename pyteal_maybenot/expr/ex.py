@@ -23,21 +23,21 @@ class _AppGetter(pt.Expr, ABC):
 
     def __init__(
         self,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
         *args: pt.Expr,
     ):
         super().__init__()
 
-        if assert_has_value and get_exists:
+        if assert_exists and get_exists:
             raise ValueError("Cannot assert and return exists flag simultaneously")
         elif (not get_exists) and slot:
             raise ValueError("Cannot store value in ScratchSlot unless getting exists flag")
 
         self._slot = slot
         self._args = args
-        self._assert_has_value = assert_has_value
+        self._assert_exists = assert_exists
         self._get_exists = get_exists
 
     def __teal__(self, options: "CompileOptions"):
@@ -55,14 +55,14 @@ class _AppGetter(pt.Expr, ABC):
             )
             get_end.setNextBlock(swap_or_store)
             return get_start, swap_or_store
-        # we assert that the value_exists (1 if exists, 0 if not), or simply pop it if assert_has_value is false
-        value_exists_op = pt.Op.assert_ if self._assert_has_value else pt.Op.pop
+        # we assert that the value_exists (1 if exists, 0 if not), or simply pop it if assert_exists is false
+        value_exists_op = pt.Op.assert_ if self._assert_exists else pt.Op.pop
         value_start, value_end = pt.TealSimpleBlock.FromOp(options, pt.TealOp(self, value_exists_op))
         get_end.setNextBlock(value_start)
         return get_start, value_end
 
     def __str__(self):
-        return f"({self.__class__.__name__} (assert={self._assert_has_value},get_exists={self._get_exists},slot={None if not self._slot else self._slot.id}))"
+        return f"({self.__class__.__name__} (assert={self._assert_exists},get_exists={self._get_exists},slot={None if not self._slot else self._slot.id}))"
 
     def type_of(self):
         if self._get_exists:
@@ -83,11 +83,11 @@ class _GetExAppLocal(_AppGetter):
         account: pt.Expr,
         app: pt.Expr,
         key: pt.Expr,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(assert_has_value, get_exists, slot, account, app, key)
+        super().__init__(assert_exists, get_exists, slot, account, app, key)
 
 
 class _GetExAppGlobal(_AppGetter):
@@ -99,11 +99,11 @@ class _GetExAppGlobal(_AppGetter):
         self,
         app: pt.Expr,
         key: pt.Expr,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(assert_has_value, get_exists, slot, app, key)
+        super().__init__(assert_exists, get_exists, slot, app, key)
 
 
 @dataclass(frozen=True, slots=True)
@@ -114,7 +114,7 @@ class ExAppLocal:
     type: pt.TealType = pt.TealType.anytype
     scratch: pt.ScratchVar | None = field(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the local state value while optionally asserting that the value exists.
 
@@ -125,7 +125,7 @@ class ExAppLocal:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetExAppLocal(self.account, self.app, self.key, assert_has_value)
+        return _GetExAppLocal(self.account, self.app, self.key, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -140,9 +140,9 @@ class ExAppLocal:
                 scratch = pt.ScratchVar(self.type)
                 object.__setattr__(self, "scratch", scratch)
             return _GetExAppLocal(
-                self.account, self.app, self.key, assert_has_value=False, get_exists=True, slot=scratch.slot
+                self.account, self.app, self.key, assert_exists=False, get_exists=True, slot=scratch.slot
             )
-        return _GetExAppLocal(self.account, self.app, self.key, assert_has_value=False, get_exists=True)
+        return _GetExAppLocal(self.account, self.app, self.key, assert_exists=False, get_exists=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,7 +152,7 @@ class ExAppGlobal:
     type: pt.TealType = pt.TealType.anytype
     scratch: pt.ScratchVar | None = field(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the global state value while optionally asserting that the value exists.
 
@@ -163,7 +163,7 @@ class ExAppGlobal:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetExAppGlobal(self.app, self.key, assert_has_value)
+        return _GetExAppGlobal(self.app, self.key, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -177,5 +177,5 @@ class ExAppGlobal:
                 # reserve new Scratch slot and store value instead of pop
                 scratch = pt.ScratchVar(self.type)
                 object.__setattr__(self, "scratch", scratch)
-            return _GetExAppGlobal(self.app, self.key, assert_has_value=False, get_exists=True, slot=scratch.slot)
-        return _GetExAppGlobal(self.app, self.key, assert_has_value=False, get_exists=True)
+            return _GetExAppGlobal(self.app, self.key, assert_exists=False, get_exists=True, slot=scratch.slot)
+        return _GetExAppGlobal(self.app, self.key, assert_exists=False, get_exists=True)

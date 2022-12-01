@@ -107,7 +107,7 @@ class _FieldGetter(pt.Expr, ABC):
     def __init__(
         self,
         field: str,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
         *args: pt.Expr,
@@ -117,7 +117,7 @@ class _FieldGetter(pt.Expr, ABC):
         if field not in self.fields:
             raise ValueError(f"{field} not a valid field in {self.__class__.__name__}")
 
-        if assert_has_value and get_exists:
+        if assert_exists and get_exists:
             raise ValueError("Cannot assert and return exists flag simultaneously")
         elif (not get_exists) and slot:
             raise ValueError("Cannot store value in ScratchSlot unless getting exists flag")
@@ -125,7 +125,7 @@ class _FieldGetter(pt.Expr, ABC):
         self._slot = slot
         self._args = args
         self._field = field
-        self._assert_has_value = assert_has_value
+        self._assert_exists = assert_exists
         self._get_exists = get_exists
 
     def __teal__(self, options: "CompileOptions"):
@@ -146,13 +146,13 @@ class _FieldGetter(pt.Expr, ABC):
                 get_end.setNextBlock(swap_or_store)
                 return get_start, swap_or_store
         # if assert has value, we assert the value_exists (1 if exists, 0 if not), else just pop it
-        value_exists_op = pt.Op.assert_ if self._assert_has_value else pt.Op.pop
+        value_exists_op = pt.Op.assert_ if self._assert_exists else pt.Op.pop
         value_start, value_end = pt.TealSimpleBlock.FromOp(options, pt.TealOp(self, value_exists_op))
         get_end.setNextBlock(value_start)
         return get_start, value_end
 
     def __str__(self):
-        return f"({self.__class__.__name__} ({self._field},assert={self._assert_has_value},get_exists={self._get_exists},slot={None if not self._slot else self._slot.id}))"
+        return f"({self.__class__.__name__} ({self._field},assert={self._assert_exists},get_exists={self._get_exists},slot={None if not self._slot else self._slot.id}))"
 
     def type_of(self):
         if self._get_exists:
@@ -174,11 +174,11 @@ class _GetAssetHolding(_FieldGetter):
         account: pt.Expr,
         asset: pt.Expr,
         field: AssetHoldingField,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(field, assert_has_value, get_exists, slot, account, asset)
+        super().__init__(field, assert_exists, get_exists, slot, account, asset)
 
 
 class _GetAssetParams(_FieldGetter):
@@ -191,11 +191,11 @@ class _GetAssetParams(_FieldGetter):
         self,
         asset: pt.Expr,
         field: AssetParamsField,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(field, assert_has_value, get_exists, slot, asset)
+        super().__init__(field, assert_exists, get_exists, slot, asset)
 
 
 class _GetAppParams(_FieldGetter):
@@ -208,11 +208,11 @@ class _GetAppParams(_FieldGetter):
         self,
         app: pt.Expr,
         field: AppParamsField,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(field, assert_has_value, get_exists, slot, app)
+        super().__init__(field, assert_exists, get_exists, slot, app)
 
 
 class _GetAcctParams(_FieldGetter):
@@ -225,11 +225,11 @@ class _GetAcctParams(_FieldGetter):
         self,
         account: pt.Expr,
         field: AcctParamsField,
-        assert_has_value: bool = True,
+        assert_exists: bool = True,
         get_exists: bool = False,
         slot: pt.ScratchSlot | None = None,
     ):
-        super().__init__(field, assert_has_value, get_exists, slot, account)
+        super().__init__(field, assert_exists, get_exists, slot, account)
 
 
 @dataclass(frozen=True, slots=True)
@@ -239,7 +239,7 @@ class AssetHolding:
     field: AssetHoldingField
     scratch: pt.ScratchVar | None = field_(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the asset holding value while optionally asserting that the value exists.
 
@@ -250,7 +250,7 @@ class AssetHolding:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetAssetHolding(self.account, self.asset, self.field, assert_has_value)
+        return _GetAssetHolding(self.account, self.asset, self.field, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -265,9 +265,9 @@ class AssetHolding:
                 scratch = pt.ScratchVar(_ASSET_HOLDING_MAP[self.field].teal_type)
                 object.__setattr__(self, "scratch", scratch)
             return _GetAssetHolding(
-                self.account, self.asset, self.field, assert_has_value=False, get_exists=True, slot=scratch.slot
+                self.account, self.asset, self.field, assert_exists=False, get_exists=True, slot=scratch.slot
             )
-        return _GetAssetHolding(self.account, self.asset, self.field, assert_has_value=False, get_exists=True)
+        return _GetAssetHolding(self.account, self.asset, self.field, assert_exists=False, get_exists=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -276,7 +276,7 @@ class AssetParams:
     field: AssetParamsField
     scratch: pt.ScratchVar | None = field_(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the asset params value while optionally asserting that the value exists.
 
@@ -287,7 +287,7 @@ class AssetParams:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetAssetParams(self.asset, self.field, assert_has_value)
+        return _GetAssetParams(self.asset, self.field, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -301,8 +301,8 @@ class AssetParams:
                 # reserve new Scratch slot and store value instead of pop
                 scratch = pt.ScratchVar(_ASSET_PARAMS_MAP[self.field].teal_type)
                 object.__setattr__(self, "scratch", scratch)
-            return _GetAssetParams(self.asset, self.field, assert_has_value=False, get_exists=True, slot=scratch.slot)
-        return _GetAssetParams(self.asset, self.field, assert_has_value=False, get_exists=True)
+            return _GetAssetParams(self.asset, self.field, assert_exists=False, get_exists=True, slot=scratch.slot)
+        return _GetAssetParams(self.asset, self.field, assert_exists=False, get_exists=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -311,7 +311,7 @@ class AppParams:
     field: AppParamsField
     scratch: pt.ScratchVar | None = field_(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the app params value while optionally asserting that the value exists.
 
@@ -322,7 +322,7 @@ class AppParams:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetAppParams(self.app, self.field, assert_has_value)
+        return _GetAppParams(self.app, self.field, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -336,8 +336,8 @@ class AppParams:
                 # reserve new Scratch slot and store value instead of pop
                 scratch = pt.ScratchVar(_APP_PARAMS_MAP[self.field].teal_type)
                 object.__setattr__(self, "scratch", scratch)
-            return _GetAppParams(self.app, self.field, assert_has_value=False, get_exists=True, slot=scratch.slot)
-        return _GetAppParams(self.app, self.field, assert_has_value=False, get_exists=True)
+            return _GetAppParams(self.app, self.field, assert_exists=False, get_exists=True, slot=scratch.slot)
+        return _GetAppParams(self.app, self.field, assert_exists=False, get_exists=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -346,7 +346,7 @@ class AcctParams:
     field: AcctParamsField
     scratch: pt.ScratchVar | None = field_(default=None, init=False, compare=False)
 
-    def get(self, assert_has_value: bool = True, load: bool = True) -> pt.Expr:
+    def get(self, assert_exists: bool = True, load: bool = True) -> pt.Expr:
         """
         Get the account params value while optionally asserting that the value exists.
 
@@ -357,7 +357,7 @@ class AcctParams:
         """
         if load and self.scratch:
             return self.scratch.load()
-        return _GetAcctParams(self.account, self.field, assert_has_value)
+        return _GetAcctParams(self.account, self.field, assert_exists)
 
     def exists(self, store: bool = True) -> pt.Expr:
         """
@@ -371,5 +371,5 @@ class AcctParams:
                 # reserve new Scratch slot and store value instead of pop
                 scratch = pt.ScratchVar(_ACCT_PARAMS_MAP[self.field].teal_type)
                 object.__setattr__(self, "scratch", scratch)
-            return _GetAcctParams(self.account, self.field, assert_has_value=False, get_exists=True, slot=scratch.slot)
-        return _GetAcctParams(self.account, self.field, assert_has_value=False, get_exists=True)
+            return _GetAcctParams(self.account, self.field, assert_exists=False, get_exists=True, slot=scratch.slot)
+        return _GetAcctParams(self.account, self.field, assert_exists=False, get_exists=True)
