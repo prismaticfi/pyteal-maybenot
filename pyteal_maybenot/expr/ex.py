@@ -46,15 +46,15 @@ class _AppGetter(pt.Expr, ABC):
         get_start, get_end = pt.TealSimpleBlock.FromOp(options, get_app_state, *self._args)
         # need to swap if returning exists flag
         if self._get_exists:
-            swap_or_store = pt.TealSimpleBlock(
+            swap = pt.TealSimpleBlock(
                 [
                     pt.TealOp(self, pt.Op.swap),
                     # if opting not to store, the value simply gets popped
                     pt.TealOp(self, pt.Op.store, self._slot) if self._slot else pt.TealOp(self, pt.Op.pop),
                 ]
             )
-            get_end.setNextBlock(swap_or_store)
-            return get_start, swap_or_store
+            get_end.setNextBlock(swap)
+            return get_start, swap
         # we assert that the value_exists (1 if exists, 0 if not), or simply pop it if assert_exists is false
         value_exists_op = pt.Op.assert_ if self._assert_exists else pt.Op.pop
         value_start, value_end = pt.TealSimpleBlock.FromOp(options, pt.TealOp(self, value_exists_op))
